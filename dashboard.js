@@ -116,58 +116,28 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPage();
   }
 
-  // Load data from cache or API (Stale-While-Revalidate pattern)
+  // Load data from cache or API (Cache-First)
   async function loadData() {
     showLoading(true);
     const cachedData = localStorage.getItem(CACHE_KEY);
-    const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
-    const now = Date.now();
 
-    if (cachedData && cachedTime) {
+    if (cachedData) {
       try {
         allData = JSON.parse(cachedData);
         statCacheStatus.textContent = 'Trực tuyến (Bộ nhớ đệm)';
         statCacheStatus.className = 'stat-value text-green';
         processData(allData);
         showLoading(false);
-
-        // Silent background update if cache is older than 6 hours
-        if (now - parseInt(cachedTime) > SILENT_SYNC_DURATION) {
-          silentBackgroundUpdate();
-        }
         return;
       } catch (e) {
         console.warn('Failed to parse cached data, fetching from API:', e);
       }
     }
 
-    // Cache missing or expired: Fetch from API
+    // Cache missing: Fetch from API
     await refreshData(false);
   }
 
-  // Silent sync database in background
-  async function silentBackgroundUpdate() {
-    try {
-      const response = await fetch(API_URL);
-      if (!response.ok) return;
-      const res = await response.json();
-      if (res && res.status && Array.isArray(res.data)) {
-        const newDataStr = JSON.stringify(res.data);
-        const oldDataStr = localStorage.getItem(CACHE_KEY);
-        
-        // Only update cache & re-render if data is actually changed
-        if (newDataStr !== oldDataStr) {
-          allData = res.data;
-          localStorage.setItem(CACHE_KEY, newDataStr);
-          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-          processData(allData);
-          showToast('Cơ sở dữ liệu tự động cập nhật bản mới nhất!');
-        }
-      }
-    } catch (e) {
-      console.warn('Silent background update failed:', e);
-    }
-  }
 
   // Fetch API and update cache (Manual/Hard refresh)
   async function refreshData(isManual = false) {

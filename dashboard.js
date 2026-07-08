@@ -260,45 +260,56 @@ document.addEventListener('DOMContentLoaded', () => {
     filterAndRender();
   }
 
-  // Calculate search relevance score (Fuzzy search matching score)
-  function getSearchScore(item, query) {
-    if (query === '') return 1;
+  // Check if item contains all words in the search query
+  function itemMatchesQuery(item, query) {
+    if (query === '') return true;
+    const words = query.split(/\s+/).filter(w => w.length > 0);
+    if (words.length === 0) return true;
 
     const name = removeAccents((item.name || '').toLowerCase());
     const domain = removeAccents((item.domain || '').toLowerCase());
     const company = removeAccents((item.companyName || '').toLowerCase());
     const tax = removeAccents((item.companyTaxCode || '').toLowerCase());
 
-    let score = 0;
+    return words.every(word => 
+      name.includes(word) || 
+      domain.includes(word) || 
+      company.includes(word) || 
+      tax.includes(word)
+    );
+  }
 
-    // 1. Exact Match Tax Code (Highest importance)
-    if (tax === query) {
+  // Calculate search relevance score (Fuzzy search matching score)
+  function getSearchScore(item, query) {
+    if (query === '') return 1;
+
+    if (!itemMatchesQuery(item, query)) return 0;
+
+    const name = removeAccents((item.name || '').toLowerCase());
+    const domain = removeAccents((item.domain || '').toLowerCase());
+    const company = removeAccents((item.companyName || '').toLowerCase());
+    const tax = removeAccents((item.companyTaxCode || '').toLowerCase());
+
+    let score = 1; // Base score for matching all words
+
+    // 1. Exact Match / Contiguous Match of the entire query string
+    if (tax.includes(query)) {
       score += 100;
-    } else if (tax.includes(query)) {
-      score += 40;
+      if (tax === query) score += 20;
     }
-
-    // 2. Match Domain
-    if (domain === query) {
+    if (domain.includes(query)) {
       score += 80;
-    } else if (domain.includes(query)) {
-      score += 30;
+      if (domain === query) score += 20;
       if (domain.startsWith(query)) score += 10;
     }
-
-    // 3. Match Platform Name
-    if (name === query) {
+    if (name.includes(query)) {
       score += 60;
-    } else if (name.includes(query)) {
-      score += 25;
+      if (name === query) score += 20;
       if (name.startsWith(query)) score += 10;
     }
-
-    // 4. Match Company Name
-    if (company === query) {
-      score += 50;
-    } else if (company.includes(query)) {
-      score += 20;
+    if (company.includes(query)) {
+      score += 40;
+      if (company === query) score += 10;
       if (company.startsWith(query)) score += 5;
     }
 
@@ -323,8 +334,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // 3. Search query filter
       if (query === '') return true;
-      return getSearchScore(item, query) > 0;
+      return itemMatchesQuery(item, query);
     });
+
 
     // Sort items by relevance score descending if searching
     if (query !== '') {

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bộ Công Thương Logo Embed Helper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-area">
+        <svg class="icon-main" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 11L11 13L15 9" stroke="url(#gradient)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="gradient" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00f2fe"/>
+              <stop offset="1" stop-color="#4facfe"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span class="title">BCT Embed Helper</span>
+      </div>
+      <div class="badge-v3">Manifest V3</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Error State: Active when not on online.gov.vn detail page -->
+      <div id="error-state" class="state-card error-card">
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <h3>Không phát hiện trang đăng ký</h3>
+        <p>Vui lòng truy cập trang thông tin chi tiết của doanh nghiệp trên website <strong>online.gov.vn</strong> (ví dụ: trang chứa thông tin nền tảng/ứng dụng đã đăng ký) để lấy mã nhúng.</p>
+        <a href="http://online.gov.vn" target="_blank" class="btn-link">Đi tới Online.gov.vn</a>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loading-state" class="state-card loading-card hidden">
+        <div class="spinner"></div>
+        <p>Đang tải thông tin doanh nghiệp từ API...</p>
+      </div>
+
+      <!-- Success State: Loaded info and generated embed code -->
+      <div id="success-state" class="state-card success-card hidden">
+        <!-- Company Info Box -->
+        <div class="info-box">
+          <div class="info-header">
+            <span class="tag-status" id="company-status">Đang tải...</span>
+          </div>
+          <h2 id="company-name" class="company-title">Tên Công Ty</h2>
+          <p id="platform-name" class="platform-subtitle">Tên Ứng Dụng</p>
+          <div class="meta-section">
+            <div class="meta-item">
+              <span class="meta-label">Mã công ty:</span>
+              <span id="company-id" class="meta-value">...</span>
+              <button id="btn-copy-id" class="btn-icon-copy" title="Sao chép mã công ty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Link trang:</span>
+              <span id="company-link" class="meta-value">...</span>
+              <button id="btn-copy-link" class="btn-icon-copy" title="Sao chép link trang">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Preview Area -->
+        <div class="preview-box">
+          <span class="section-title">Xem trước Logo</span>
+          <div class="logo-preview-wrapper">
+            <img id="logo-preview-img" src="http://online.gov.vn/logoCCDV.png" alt="Bộ Công Thương Logo" />
+          </div>
+        </div>
+
+        <!-- Code Embed Area with Tabs -->
+        <div class="code-box">
+          <div class="code-tabs">
+            <button class="tab-btn active" id="tab-html">HTML</button>
+            <button class="tab-btn" id="tab-markdown">Markdown</button>
+          </div>
+          
+          <!-- HTML Tab Content -->
+          <div id="panel-html" class="tab-panel">
+            <div class="code-header">
+              <span class="section-title">Mã nhúng HTML</span>
+              <button id="btn-copy" class="btn-primary">
+                <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Sao chép</span>
+              </button>
+            </div>
+            <div class="textarea-wrapper">
+              <textarea id="embed-code-text" readonly></textarea>
+            </div>
+          </div>
+
+          <!-- Markdown Tab Content -->
+          <div id="panel-markdown" class="tab-panel hidden">
+            <div class="code-header">
+              <span class="section-title">Mã nhúng Markdown</span>
+              <button id="btn-copy-md" class="btn-primary">
+                <svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Sao chép</span>
+              </button>
+            </div>
+            <div class="textarea-wrapper">
+              <textarea id="embed-code-md" readonly></textarea>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <span>Chỉ hoạt động trên domain <strong>online.gov.vn</strong></span>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

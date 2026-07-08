@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Bộ Công Thương Logo Embed Helper",
+  "version": "1.0.0",
+  "description": "Tự động lấy link và tạo mã nhúng logo Bộ Công Thương đã đăng ký/thông báo từ online.gov.vn",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "permissions": [
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*.online.gov.vn/*",
+    "*://api.online.gov.vn/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.online.gov.vn/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
+      "run_at": "document_end"
+    }
+  ]
+}

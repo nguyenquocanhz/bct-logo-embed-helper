@@ -654,17 +654,83 @@ body {
   max-width: 400px;
 }
 
-/* Infinite Scroll Trigger */
-.scroll-trigger {
+/* Pagination Controls */
+.pagination-controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
-  padding: 24px;
-  color: var(--text-secondary);
-  font-size: 12px;
+  gap: 12px;
+  padding: 30px 20px;
   width: 100%;
 }
+
+.btn-page {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(0, 242, 254, 0.3);
+  color: var(--primary-color);
+}
+
+.btn-page:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.page-numbers-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-page-num {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.btn-page-num:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.02);
+  border-color: var(--panel-border);
+}
+
+.btn-page-num.active {
+  background: rgba(0, 242, 254, 0.1);
+  color: var(--primary-color);
+  border-color: rgba(0, 242, 254, 0.2);
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+}
+
+.pagination-ellipsis {
+  color: var(--text-muted);
+  font-size: 12px;
+  padding: 0 4px;
+  user-select: none;
+}
+
 
 /* Base Buttons */
 .btn-secondary {

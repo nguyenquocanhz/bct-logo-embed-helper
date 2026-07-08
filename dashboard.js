@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const CACHE_KEY = 'bct_platforms_cache';
   const CACHE_TIME_KEY = 'bct_platforms_cache_time';
   const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
-  const SILENT_SYNC_DURATION = 6 * 60 * 60 * 1000; // Silent sync after 6 hours
 
   // State Variables
   let allData = [];
@@ -19,7 +18,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const gridContainer = document.getElementById('grid-container');
   const listContainer = document.getElementById('list-container');
   const tableBody = document.getElementById('table-body');
-  const scrollTrigger = document.getElementById('scroll-trigger');
+  
+  // Pagination Elements
+  const paginationControls = document.getElementById('pagination-controls');
+  const btnPagePrev = document.getElementById('btn-page-prev');
+  const btnPageNext = document.getElementById('btn-page-next');
+  const pageNumbers = document.getElementById('page-numbers');
 
   // Filter Elements
   const searchInput = document.getElementById('search-input');
@@ -43,7 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function init() {
     setupEventListeners();
-    setupInfiniteScroll();
     await loadData();
   }
 
@@ -77,22 +80,47 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleGrid.addEventListener('click', () => switchView('grid'));
     toggleList.addEventListener('click', () => switchView('list'));
 
-    // Event delegation for copy actions
-    document.addEventListener('click', handleCopyActions);
-  }
-
-  // Infinite scroll observer setup
-  function setupInfiniteScroll() {
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && filteredData.length > currentPage * pageSize) {
-        currentPage++;
+    // Pagination buttons click
+    btnPagePrev.addEventListener('click', () => {
+      if (currentPage > 1) {
+        currentPage--;
+        document.querySelector('.results-area').scrollIntoView({ behavior: 'smooth' });
         renderPage();
       }
-    }, {
-      rootMargin: '100px'
     });
 
-    observer.observe(scrollTrigger);
+    btnPageNext.addEventListener('click', () => {
+      const totalPages = Math.ceil(filteredData.length / pageSize);
+      if (currentPage < totalPages) {
+        currentPage++;
+        document.querySelector('.results-area').scrollIntoView({ behavior: 'smooth' });
+        renderPage();
+      }
+    });
+
+    // Event delegation for copy actions
+    document.addEventListener('click', handleCopyActions);
+
+    // Listen for image load errors globally (capturing phase) to fallback to initials logo (CSP compliant)
+    document.addEventListener('error', (e) => {
+      if (e.target.tagName && e.target.tagName.toLowerCase() === 'img' && e.target.closest('.card-logo-wrapper, .table-logo')) {
+        const parent = e.target.parentElement;
+        const card = e.target.closest('.platform-card') || e.target.closest('tr');
+        
+        let text = 'BCT';
+        if (card) {
+          const titleEl = card.querySelector('.card-title');
+          if (titleEl) text = titleEl.textContent;
+        }
+        
+        const initials = getInitials(text);
+        if (parent.classList.contains('card-logo-wrapper')) {
+          parent.innerHTML = `<div class="logo-fallback">${initials}</div>`;
+        } else if (parent.classList.contains('table-logo')) {
+          parent.innerHTML = `<div class="table-fallback-logo">${initials}</div>`;
+        }
+      }
+    }, true);
   }
 
   // Switch between Grid and Table View
@@ -111,8 +139,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     // Re-render
     currentPage = 1;
-    gridContainer.innerHTML = '';
-    tableBody.innerHTML = '';
     renderPage();
   }
 
@@ -151,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Both missing (unlikely): Fetch from API
     await refreshData(false);
   }
-
 
   // Fetch API and update cache (Manual/Hard refresh) with Timeout
   async function refreshData(isManual = false) {
@@ -213,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoading(false);
     }
   }
-
 
   // Populate filter selectors and stats based on data
   function processData(data) {
@@ -337,7 +361,6 @@ document.addEventListener('DOMContentLoaded', () => {
       return itemMatchesQuery(item, query);
     });
 
-
     // Sort items by relevance score descending if searching
     if (query !== '') {
       matchedItems.sort((a, b) => {
@@ -349,21 +372,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filteredData = matchedItems;
     currentPage = 1;
-    gridContainer.innerHTML = '';
-    tableBody.innerHTML = '';
     
     if (filteredData.length === 0) {
+      gridContainer.innerHTML = '';
+      tableBody.innerHTML = '';
       noResults.classList.remove('hidden');
-      scrollTrigger.classList.add('hidden');
+      paginationControls.classList.add('hidden');
     } else {
       noResults.classList.add('hidden');
-      scrollTrigger.classList.remove('hidden');
       renderPage();
     }
   }
 
   // Render current page items
   function renderPage() {
+    // Clear previous page elements
+    gridContainer.innerHTML = '';
+    tableBody.innerHTML = '';
+
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, filteredData.length);
     const itemsToRender = filteredData.slice(startIndex, endIndex);
@@ -382,12 +408,69 @@ document.addEventListener('DOMContentLoaded', () => {
       tableBody.appendChild(fragment);
     }
 
-    // Hide infinite scroll loader if all items are rendered
-    if (filteredData.length <= currentPage * pageSize) {
-      scrollTrigger.classList.add('hidden');
-    } else {
-      scrollTrigger.classList.remove('hidden');
+    // Render pagination buttons
+    renderPaginationControls();
+  }
+
+  // Render Pagination Bar
+  function renderPaginationControls() {
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+    
+    if (totalPages <= 1) {
+      paginationControls.classList.add('hidden');
+      return;
     }
+    
+    paginationControls.classList.remove('hidden');
+    
+    btnPagePrev.disabled = currentPage === 1;
+    btnPageNext.disabled = currentPage === totalPages;
+    
+    pageNumbers.innerHTML = '';
+    
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, startPage + 4);
+    
+    if (endPage - startPage < 4) {
+      startPage = Math.max(1, endPage - 4);
+    }
+    
+    if (startPage > 1) {
+      addPageButton(1);
+      if (startPage > 2) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'pagination-ellipsis';
+        ellipsis.textContent = '...';
+        pageNumbers.appendChild(ellipsis);
+      }
+    }
+    
+    for (let i = startPage; i <= endPage; i++) {
+      addPageButton(i);
+    }
+    
+    if (endPage < totalPages) {
+      if (endPage < totalPages - 1) {
+        const ellipsis = document.createElement('span');
+        ellipsis.className = 'pagination-ellipsis';
+        ellipsis.textContent = '...';
+        pageNumbers.appendChild(ellipsis);
+      }
+      addPageButton(totalPages);
+    }
+  }
+
+  function addPageButton(pageNumber) {
+    const btn = document.createElement('button');
+    btn.className = `btn-page-num ${pageNumber === currentPage ? 'active' : ''}`;
+    btn.textContent = pageNumber;
+    btn.type = 'button';
+    btn.addEventListener('click', () => {
+      currentPage = pageNumber;
+      document.querySelector('.results-area').scrollIntoView({ behavior: 'smooth' });
+      renderPage();
+    });
+    pageNumbers.appendChild(btn);
   }
 
   // Create Card Widget
@@ -395,10 +478,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const card = document.createElement('div');
     card.className = 'platform-card';
     
-    // Logo block
+    // Logo block (CSP compliant, no inline onerror)
     let logoHtml = '';
     if (item.logo) {
-      logoHtml = `<img src="${item.logo}" alt="Logo" onerror="this.src=''; this.parentElement.innerHTML='<div class=&quot;logo-fallback&quot;>${getInitials(item.name || item.companyName)}</div>'">`;
+      logoHtml = `<img src="${item.logo}" alt="Logo">`;
     } else {
       logoHtml = `<div class="logo-fallback">${getInitials(item.name || item.companyName)}</div>`;
     }
@@ -457,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     let logoHtml = '';
     if (item.logo) {
-      logoHtml = `<img src="${item.logo}" alt="" onerror="this.src=''; this.parentElement.innerHTML='<div class=&quot;table-fallback-logo&quot;>${getInitials(item.name || item.companyName)}</div>'">`;
+      logoHtml = `<img src="${item.logo}" alt="Logo">`;
     } else {
       logoHtml = `<div class="table-fallback-logo">${getInitials(item.name || item.companyName)}</div>`;
     }
@@ -613,6 +696,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return text.substring(0, 2).toUpperCase();
   }
 
+  // Domain formatter
   function formatDomainUrl(domain) {
     if (!domain) return null;
     let url = domain.trim();
@@ -627,6 +711,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Vietnamese accent remover
   function removeAccents(str) {
     if (!str) return '';
     return str.normalize('NFD')
@@ -635,6 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
               .replace(/Đ/g, 'D');
   }
 
+  // HTML sanitizers
   function escapeHtml(text) {
     return text
       .replace(/&/g, "&amp;")

@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPage();
   }
 
-  // Load data from cache or API (Cache-First)
+  // Load data from cache or API (Cache-First with offline pre-shipped fallback)
   async function loadData() {
     showLoading(true);
     const cachedData = localStorage.getItem(CACHE_KEY);
@@ -130,16 +130,30 @@ document.addEventListener('DOMContentLoaded', () => {
         showLoading(false);
         return;
       } catch (e) {
-        console.warn('Failed to parse cached data, fetching from API:', e);
+        console.warn('Failed to parse cached data:', e);
       }
     }
 
-    // Cache missing: Fetch from API
+    // Cache missing: Use offline pre-shipped fallback data
+    if (typeof BCT_FALLBACK_DATA !== 'undefined' && Array.isArray(BCT_FALLBACK_DATA)) {
+      allData = BCT_FALLBACK_DATA;
+      statCacheStatus.textContent = 'Trực tuyến (Ngoại tuyến)';
+      statCacheStatus.className = 'stat-value text-blue';
+      processData(allData);
+      showLoading(false);
+      
+      // Save it to cache for next time
+      localStorage.setItem(CACHE_KEY, JSON.stringify(allData));
+      localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+      return;
+    }
+
+    // Both missing (unlikely): Fetch from API
     await refreshData(false);
   }
 
 
-  // Fetch API and update cache (Manual/Hard refresh)
+  // Fetch API and update cache (Manual/Hard refresh) with Timeout
   async function refreshData(isManual = false) {
     showLoading(true);
     statCacheStatus.textContent = 'Đang tải...';
@@ -148,8 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const spinIcon = btnRefreshCache.querySelector('.icon-spin-target');
     if (spinIcon) spinIcon.classList.add('icon-spin');
 
+    // Create controller with 6-second timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(API_URL, { signal: controller.signal });
+      clearTimeout(timeoutId); // Clear timeout since request succeeded
+      
       if (!response.ok) throw new Error('API request failed');
       
       const res = await response.json();
@@ -169,15 +189,23 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error('Invalid data format received');
       }
     } catch (e) {
+      clearTimeout(timeoutId); // Clear timeout
       console.error('API Error:', e);
-      statCacheStatus.textContent = 'Ngoại tuyến (Lỗi API)';
+      
+      const isTimeout = e.name === 'AbortError';
+      const errMsg = isTimeout ? 'Kết nối API quá hạn (Timeout)!' : 'Không thể kết nối API!';
+      
+      statCacheStatus.textContent = isTimeout ? 'Ngoại tuyến (Timeout)' : 'Ngoại tuyến (Lỗi API)';
       statCacheStatus.className = 'stat-value text-red';
-      showToast('Không thể kết nối API. Đang dùng dữ liệu cũ.');
+      showToast(`${errMsg} Đang dùng dữ liệu cũ.`);
 
       // Try loading whatever is in cache as fallback
       const cachedData = localStorage.getItem(CACHE_KEY);
       if (cachedData) {
         allData = JSON.parse(cachedData);
+        processData(allData);
+      } else if (typeof BCT_FALLBACK_DATA !== 'undefined' && Array.isArray(BCT_FALLBACK_DATA)) {
+        allData = BCT_FALLBACK_DATA;
         processData(allData);
       }
     } finally {
@@ -185,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showLoading(false);
     }
   }
+
 
   // Populate filter selectors and stats based on data
   function processData(data) {

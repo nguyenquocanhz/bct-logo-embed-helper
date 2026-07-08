@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bộ Công Thương Logo Embed Helper - Chrome Extension</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #03000a;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --primary-color: #00f2fe;
+      --secondary-color: #4facfe;
+      --accent-gradient: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+      --panel-bg: rgba(255, 255, 255, 0.03);
+      --panel-border: rgba(255, 255, 255, 0.07);
+      --glow-shadow: 0 0 25px rgba(0, 242, 254, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-color);
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(79, 172, 254, 0.05) 0%, transparent 40%);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px;
+    }
+
+    /* Navigation */
+    header {
+      padding: 20px 0;
+      border-bottom: 1px solid var(--panel-border);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(3, 0, 10, 0.7);
+    }
+
+    .nav-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo-branding {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.5));
+    }
+
+    .logo-branding h1 {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover {
+      color: var(--primary-color);
+    }
+
+    .btn-download-nav {
+      background: var(--accent-gradient);
+      color: #030008;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+      transition: all 0.3s;
+    }
+
+    .btn-download-nav:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+      box-shadow: var(--glow-shadow);
+    }
+
+    /* Hero Section */
+    .hero-section {
+      padding: 80px 0 60px 0;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(0, 242, 254, 0.08);
+      color: var(--primary-color);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .hero-section h2 {
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -1px;
+      max-width: 800px;
+      margin: 0 auto 20px auto;
+    }
+
+    .gradient-text {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-section p {
+      font-size: 16px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto 32px auto;
+    }
+
+    .hero-ctas {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 60px;
+    }
+
+    .btn-primary {
+      background: var(--accent-gradient);
+      color: #030008;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.25);
+      transition: all 0.3s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow-shadow);
+    }
+
+    .btn-secondary {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text-primary);
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* Product Showcase Mockup */
+    .mockup-wrapper {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 10px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 242, 254, 0.05);
+      backdrop-filter: blur(10px);
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .mockup-image {
+      width: 100%;
+      height: auto;
+      border-radius: 12px;
+      display: block;
+    }
+
+    /* Features Grid */
+    .features-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .section-title-wrapper {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+
+    .section-title-wrapper h3 {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .section-title-wrapper p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 28px;
+      transition: all 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(0, 242, 254, 0.3);
+      background: rgba(255, 255, 255, 0.05);
+      transform: translateY(-4px);
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      background: rgba(0, 242, 254, 0.1);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+    }
+
+    .feature-card h4 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p {
+      color: var(--text-secondary);
+      font-size: 13.5px;
+      line-height: 1.5;
+    }
+
+    /* Online Generator Tool Demo */
+    .demo-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--panel-border);
+      background: radial-gradient(circle at 50% 50%, rgba(79, 172, 254, 0.03) 0%, transparent 60%);
+    }
+
+    .demo-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--panel-border);
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 750px;
+      margin: 0 auto;
+      backdrop-filter: blur(10px);
+    }
+
+    .demo-card h4 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+
+    .demo-card .demo-desc {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    .demo-input-group {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .demo-input {
+      flex-grow: 1;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text-primary);
+      font-size: 13px;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .demo-input:focus {
+      border-color: rgba(0, 242, 254, 0.5);
+      box-shadow: 0 0 12px rgba(0, 242, 254, 0.1);
+    }
+
+    .btn-demo-submit {
+      background: var(--accent-gradient);
+      color: #030008;
+      border: none;
+      border-radius: 10px;
+      padding: 0 24px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.15);
+      transition: all 0.2s;
+    }
+
+    .btn-demo-submit:hover {
+      opacity: 0.9;
+    }
+
+    .demo-error {
+      color: var(--error-color);
+      font-size: 12px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .demo-results {
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .demo-company-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .demo-company-info h5 {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .demo-company-info p {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    .demo-status-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+    }
+
+    .demo-tabs {
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--panel-border);
+      padding: 3px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+
+    .demo-tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .demo-tab-btn.active {
+      background: rgba(0, 242, 254, 0.1);
+      color: var(--primary-color);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+    }
+
+    .demo-code-wrapper {
+      position: relative;
+    }
+
+    .demo-code-area {
+      width: 100%;
+      height: 80px;
+      background: #030107;
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 12px;
+      color: #38bdf8;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 11px;
+      resize: none;
+      outline: none;
+      line-height: 1.4;
+    }
+
+    .btn-demo-copy {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--accent-gradient);
+      border: none;
+      color: #030008;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    }
+
+    /* Installation Steps */
+    .install-section {
+      padding: 80px 0;
+      border-top: 1px solid var(--panel-border);
+    }
+
+    .steps-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+      margin-top: 40px;
+    }
+
+    .step-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 24px;
+      position: relative;
+    }
+
+    .step-num {
+      position: absolute;
+      top: -15px;
+      left: 20px;
+      width: 30px;
+      height: 30px;
+      background: var(--accent-gradient);
+      color: #030008;
+      font-weight: 800;
+      font-size: 13px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--glow-shadow);
+    }
+
+    .step-card h5 {
+      font-size: 14.5px;
+      font-weight: 700;
+      margin: 10px 0 8px 0;
+    }
+
+    .step-card p {
+      color: var(--text-secondary);
+      font-size: 12.5px;
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--panel-border);
+      padding: 30px 0;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12.5px;
+    }
+
+    footer p {
+      margin-bottom: 6px;
+    }
+
+    /* Toasts */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10000;
+    }
+
+    .toast {
+      background: rgba(13, 10, 24, 0.95);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(16, 185, 129, 0.1);
+      padding: 10px 20px;
+      border-radius: 8px;
+      color: white;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: fadeInUp 0.3s ease-out forwards;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="container nav-wrapper">
+      <a href="#" class="logo-branding">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 11L11 13L15 9" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="logo-grad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00f2fe"/>
+              <stop offset="1" stop-color="#4facfe"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <h1>BCT Embed Helper</h1>
+      </a>
+      <div class="nav-links">
+        <a href="#features" class="nav-link">Tính năng</a>
+        <a href="#demo" class="nav-link">Dùng thử online</a>
+        <a href="#install" class="nav-link">Hướng dẫn cài đặt</a>
+        <a href="https://github.com/nguyenquocanhz/bct-logo-embed-helper" target="_blank" class="nav-link">GitHub</a>
+        <a href="https://github.com/nguyenquocanhz/bct-logo-embed-helper/archive/refs/heads/main.zip" class="btn-download-nav">Tải Extension</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <span class="badge">Chrome Extension v1.0.0</span>
+      <h2>Chèn Logo Bộ Công Thương Lên Website<br><span class="gradient-text">Chỉ Trong 1 Giây</span></h2>
+      <p>Tiện ích mã nguồn mở giúp tự động tạo mã nhúng HTML & Markdown, quản lý và tra cứu cơ sở dữ liệu hơn 500 nền tảng trực tuyến đã được xác thực bởi Bộ Công Thương.</p>
+      
+      <div class="hero-ctas">
+        <a href="https://github.com/nguyenquocanhz/bct-logo-embed-helper/archive/refs/heads/main.zip" class="btn-primary">Tải tiện ích về máy (.zip)</a>
+        <a href="https://github.com/nguyenquocanhz/bct-logo-embed-helper" target="_blank" class="btn-secondary">Xem dự án trên GitHub</a>
+      </div>
+
+      <!-- Showcase Mockup -->
+      <div class="mockup-wrapper">
+        <img class="mockup-image" src="bct_extension_mockup.png" alt="Showcase Mockup của Chrome Extension">
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-title-wrapper">
+        <h3>Các Tính Năng Vượt Trội</h3>
+        <p>Giúp loại bỏ hoàn toàn các thao tác thủ công, tiết kiệm thời gian cho các lập trình viên.</p>
+      </div>
+
+      <div class="features-grid">
+        <!-- Feature 1 -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          </div>
+          <h4>Domain Security Policy</h4>
+          <p>Áp dụng chính sách bảo mật Manifest V3 nghiêm ngặt. Tiện ích chỉ chạy duy nhất trên tên miền online.gov.vn, cam kết an toàn dữ liệu 100%.</p>
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h6v6M10 14L21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            </svg>
+          </div>
+          <h4>Widget Nổi & Kéo Thả</h4>
+          <p>Tự động tạo Widget nổi trên trang chi tiết Bộ Công Thương. Hỗ trợ kéo thả di chuyển vị trí, copy nhanh mã HTML/Markdown với hiệu ứng Toast bắt mắt.</p>
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <h4>Tra Cứu 500+ Doanh Nghiệp</h4>
+          <p>Tích hợp trang Dashboard tra cứu 500+ doanh nghiệp đã được phê duyệt. Hỗ trợ tìm kiếm mờ, lọc danh mục, xem dạng lưới/bảng và copy nhanh 0ms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live Demo / Online Generator -->
+  <section id="demo" class="demo-section">
+    <div class="container">
+      <div class="demo-card">
+        <h4>Trình Tạo Mã Nhúng Trực Tuyến</h4>
+        <p class="demo-desc">Trải nghiệm tính năng tạo mã nhúng của Extension trực tiếp trên web bằng cách dán URL đăng ký Bộ Công Thương của bạn vào đây.</p>
+        
+        <div class="demo-input-group">
+          <input type="text" id="demo-url-input" class="demo-input" placeholder="Ví dụ: http://online.gov.vn/nen-tang/6fa369f9-dc53-45be-9f69-014b06f1aa68">
+          <button id="btn-demo-submit" class="btn-demo-submit">Tạo mã</button>
+        </div>
+
+        <div id="demo-error-msg" class="demo-error hidden"></div>
+
+        <div id="demo-results-wrapper" class="demo-results hidden">
+          <div class="demo-company-card">
+            <div class="demo-company-info">
+              <h5 id="demo-comp-name">Tên Công ty</h5>
+              <p id="demo-app-name">Tên Nền tảng</p>
+            </div>
+            <span class="demo-status-badge" id="demo-status">Đã xác nhận</span>
+          </div>
+
+          <div class="demo-tabs">
+            <button class="demo-tab-btn active" id="tab-demo-html">HTML Code</button>
+            <button class="demo-tab-btn" id="tab-demo-md">Markdown Code</button>
+          </div>
+
+          <div class="demo-code-wrapper">
+            <textarea id="demo-code-area" class="demo-code-area" readonly></textarea>
+            <button id="btn-demo-copy" class="btn-demo-copy">Sao chép</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How to Install -->
+  <section id="install" class="install-section">
+    <div class="container">
+      <div class="section-title-wrapper">
+        <h3>Hướng Dẫn Cài Đặt Tiện Ích</h3>
+        <p>Chỉ cần 4 bước đơn giản để tích hợp công cụ vào trình duyệt Google Chrome của bạn.</p>
+      </div>
+
+      <div class="steps-list">
+        <!-- Step 1 -->
+        <div class="step-card">
+          <span class="step-num">1</span>
+          <h5>Tải & Giải nén ZIP</h5>
+          <p>Tải tệp ZIP từ nút tải về của trang web này, sau đó giải nén ra một thư mục trên ổ cứng máy tính.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-card">
+          <span class="step-num">2</span>
+          <h5>Mở trang quản lý</h5>
+          <p>Truy cập đường dẫn <code>chrome://extensions/</code> trên trình duyệt Chrome để mở trang quản lý tiện ích.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-card">
+          <span class="step-num">3</span>
+          <h5>Bật Developer Mode</h5>
+          <p>Bật công tắc "Chế độ dành cho nhà phát triển" (Developer mode) nằm ở góc trên cùng bên phải màn hình.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="step-card">
+          <span class="step-num">4</span>
+          <h5>Nạp thư mục nguồn</h5>
+          <p>Chọn nút "Tải tiện ích đã giải nén" (Load unpacked), chọn thư mục chứa tệp tin đã giải nén ở Bước 1.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <p>Dự án được xây dựng dưới dạng mã nguồn mở phi thương mại (MIT / GPL-v3).</p>
+      <p>Bản quyền thuộc về &copy; 2026 nguyenquocanhz. Tất cả các quyền được bảo lưu.</p>
+    </div>
+  </footer>
+
+  <!-- Toast element -->
+  <div class="toast-container">
+    <div id="demo-toast" class="toast hidden">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <span id="toast-text">Sao chép thành công!</span>
+    </div>
+  </div>
+
+  <script>
+    // Live Demo tool scripting
+    const urlInput = document.getElementById('demo-url-input');
+    const btnSubmit = document.getElementById('btn-demo-submit');
+    const errorMsg = document.getElementById('demo-error-msg');
+    const resultsWrapper = document.getElementById('demo-results-wrapper');
+    
+    const compNameEl = document.getElementById('demo-comp-name');
+    const appNameEl = document.getElementById('demo-app-name');
+    const statusEl = document.getElementById('demo-status');
+    const codeArea = document.getElementById('demo-code-area');
+    
+    const tabHtml = document.getElementById('tab-demo-html');
+    const tabMd = document.getElementById('tab-demo-md');
+    const btnCopy = document.getElementById('btn-demo-copy');
+    const toast = document.getElementById('demo-toast');
+
+    let currentCompanyId = null;
+    let selectedTab = 'html'; // 'html' or 'md'
+
+    btnSubmit.addEventListener('click', generateEmbedCode);
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') generateEmbedCode();
+    });
+
+    function generateEmbedCode() {
+      const urlValue = urlInput.value.trim();
+      errorMsg.classList.add('hidden');
+      resultsWrapper.classList.add('hidden');
+
+      if (!urlValue) {
+        showError('Vui lòng nhập đường dẫn liên kết đăng ký.');
+        return;
+      }
+
+      const match = urlValue.match(/\/nen-tang\/([a-zA-Z0-9-]+)/);
+      if (!match) {
+        showError('Đường dẫn không hợp lệ. Vui lòng nhập link dạng: http://online.gov.vn/nen-tang/uuid-ma-cong-ty');
+        return;
+      }
+
+      currentCompanyId = match[1];
+      const apiUrl = `https://api.online.gov.vn/api/HomeBlock/PlatformPublic/${currentCompanyId}`;
+
+      btnSubmit.textContent = 'Đang tải...';
+      btnSubmit.disabled = true;
+
+      fetch(apiUrl)
+        .then(res => res.json())
+        .then(res => {
+          btnSubmit.textContent = 'Tạo mã';
+          btnSubmit.disabled = false;
+
+          if (res && res.status && res.data) {
+            resultsWrapper.classList.remove('hidden');
+            compNameEl.textContent = res.data.companyName || 'Doanh nghiệp đã duyệt';
+            appNameEl.textContent = res.data.name || 'Website Thương mại Điện tử';
+            statusEl.textContent = res.data.statusName || 'Đã xác nhận';
+            updateCodeOutput(urlValue);
+          } else {
+            showError('Không lấy được dữ liệu. Vui lòng kiểm tra lại ID hoặc đường dẫn.');
+          }
+        })
+        .catch(err => {
+          btnSubmit.textContent = 'Tạo mã';
+          btnSubmit.disabled = false;
+          showError('Không thể kết nối tới máy chủ Bộ Công Thương. Vui lòng thử lại.');
+        });
+    }
+
+    function updateCodeOutput(url) {
+      const htmlText = `<a href="${url}" target="_blank" rel="noopener noreferrer"><img src="http://online.gov.vn/logoCCDV.png" alt="Đã Đăng Ký Bộ Công Thương" style="width: 150px; border: 0;" /></a>`;
+      const mdText = `[![Đã Đăng Ký Bộ Công Thương](http://online.gov.vn/logoCCDV.png)](${url})`;
+
+      if (selectedTab === 'html') {
+        codeArea.value = htmlText;
+      } else {
+        codeArea.value = mdText;
+      }
+    }
+
+    tabHtml.addEventListener('click', () => {
+      selectedTab = 'html';
+      tabHtml.classList.add('active');
+      tabMd.classList.remove('active');
+      if (urlInput.value) updateCodeOutput(urlInput.value.trim());
+    });
+
+    tabMd.addEventListener('click', () => {
+      selectedTab = 'md';
+      tabMd.classList.add('active');
+      tabHtml.classList.remove('active');
+      if (urlInput.value) updateCodeOutput(urlInput.value.trim());
+    });
+
+    btnCopy.addEventListener('click', () => {
+      if (!codeArea.value) return;
+      navigator.clipboard.writeText(codeArea.value)
+        .then(() => {
+          btnCopy.textContent = 'Đã chép!';
+          showToast();
+          setTimeout(() => {
+            btnCopy.textContent = 'Sao chép';
+          }, 1500);
+        });
+    });
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.remove('hidden');
+    }
+
+    function showToast() {
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

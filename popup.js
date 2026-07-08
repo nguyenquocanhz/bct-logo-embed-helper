@@ -21,6 +21,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   const embedCodeMd = document.getElementById('embed-code-md');
   const btnCopyMd = document.getElementById('btn-copy-md');
 
+  const btnOpenDashboard = document.getElementById('btn-open-dashboard');
+  if (btnOpenDashboard) {
+    btnOpenDashboard.addEventListener('click', () => {
+      chrome.tabs.create({ url: 'dashboard.html' });
+    });
+  }
+
+
 
 
   // Query the active tab

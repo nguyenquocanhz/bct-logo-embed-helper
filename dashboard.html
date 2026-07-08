@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cơ sở dữ liệu Nền tảng đã duyệt - Bộ Công Thương</title>
+  <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-branding">
+        <svg class="header-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 11L11 13L15 9" stroke="url(#logo-grad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="logo-grad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#00f2fe"/>
+              <stop offset="1" stop-color="#4facfe"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div>
+          <h1>BCT Approved Platforms Database</h1>
+          <p class="subtitle">Tra cứu & Quản lý Mã nhúng 500+ Nền tảng đã đăng ký Bộ Công Thương</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button id="btn-refresh-cache" class="btn-secondary" title="Cập nhật lại dữ liệu từ API Bộ Công Thương">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" class="icon-spin-target">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+          <span>Tải lại dữ liệu</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stats Banner -->
+    <section class="stats-banner">
+      <div class="stat-card">
+        <span class="stat-label">Tổng nền tảng</span>
+        <span class="stat-value" id="stat-total-platforms">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Đã xác nhận</span>
+        <span class="stat-value text-green" id="stat-approved-platforms">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Số danh mục</span>
+        <span class="stat-value text-blue" id="stat-total-categories">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Trạng thái dữ liệu</span>
+        <span class="stat-value text-purple" id="stat-cache-status">Ngoại tuyến (Cache)</span>
+      </div>
+    </section>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+      <!-- Sidebar Controls (Filters) -->
+      <aside class="sidebar-filters">
+        <div class="filter-group search-group">
+          <label for="search-input">Tìm kiếm</label>
+          <div class="search-wrapper">
+            <input type="text" id="search-input" placeholder="Tìm tên app, công ty, MST, domain..." autocomplete="off">
+            <button id="btn-clear-search" class="btn-clear hidden">&times;</button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-category">Danh mục Nền tảng</label>
+          <select id="filter-category">
+            <option value="all">-- Tất cả danh mục --</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="filter-template">Mẫu Logo</label>
+          <select id="filter-template">
+            <option value="all">-- Tất cả các mẫu --</option>
+          </select>
+        </div>
+
+        <div class="filter-group toggle-view-group">
+          <label>Chế độ hiển thị</label>
+          <div class="view-toggles">
+            <button id="toggle-grid" class="view-toggle-btn active" title="Dạng lưới thẻ">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <rect x="3" y="3" width="7" height="7"/>
+                <rect x="14" y="3" width="7" height="7"/>
+                <rect x="14" y="14" width="7" height="7"/>
+                <rect x="3" y="14" width="7" height="7"/>
+              </svg>
+              <span>Lưới</span>
+            </button>
+            <button id="toggle-list" class="view-toggle-btn" title="Dạng danh sách bảng">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <line x1="8" y1="6" x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+              <span>Bảng</span>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Results Display -->
+      <main class="results-area">
+        <!-- Loading State -->
+        <div id="loading-spinner" class="spinner-overlay hidden">
+          <div class="spinner-box">
+            <div class="spinner"></div>
+            <p>Đang đồng bộ dữ liệu từ API Bộ Công Thương...</p>
+          </div>
+        </div>
+
+        <!-- No Results Found -->
+        <div id="no-results" class="no-results-card hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            <line x1="8" y1="11" x2="14" y2="11"/>
+          </svg>
+          <h3>Không tìm thấy kết quả</h3>
+          <p>Không có nền tảng nào khớp với từ khóa hoặc bộ lọc đã chọn. Vui lòng thử lại với tiêu chí khác.</p>
+        </div>
+
+        <!-- Grid Cards Container -->
+        <div id="grid-container" class="cards-grid">
+          <!-- Dynamically populated card widgets -->
+        </div>
+
+        <!-- Table List Container -->
+        <div id="list-container" class="table-list-wrapper hidden">
+          <table class="table-list">
+            <thead>
+              <tr>
+                <th style="width: 50px;">Logo</th>
+                <th>Tên nền tảng</th>
+                <th>Tên miền</th>
+                <th>Doanh nghiệp & MST</th>
+                <th>Danh mục</th>
+                <th style="width: 180px; text-align: center;">Thao tác nhanh</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Dynamically populated table rows -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination/Infinite Scroll Trigger -->
+        <div id="scroll-trigger" class="scroll-trigger">
+          <div class="small-spinner"></div>
+          <span>Đang tải thêm dữ liệu...</span>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="bct-toast-container"></div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

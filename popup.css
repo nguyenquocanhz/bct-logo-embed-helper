@@ -68,15 +68,28 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.badge-v3 {
+.btn-search-nav {
+  display: flex;
+  align-items: center;
+  font-family: var(--font-family);
   font-size: 10px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 20px;
-  color: var(--text-secondary);
-  border: 1px solid var(--panel-border);
+  font-weight: 700;
+  background: rgba(0, 242, 254, 0.08);
+  color: var(--primary-color);
+  border: 1px solid rgba(0, 242, 254, 0.15);
+  padding: 4px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
+
+.btn-search-nav:hover {
+  background: var(--accent-gradient);
+  color: #030008;
+  border-color: transparent;
+  box-shadow: var(--glow-shadow);
+}
+
 
 /* Main Content */
 .main-content {

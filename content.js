@@ -4,6 +4,7 @@
   // Check if we are on a detail page
   let companyId = null;
   let isPlatform = false;
+  let shadowRoot = null;
 
   const platformMatch = currentUrl.match(/\/nen-tang\/([a-zA-Z0-9-]+)/);
   if (platformMatch) {
@@ -74,13 +75,15 @@
     return null;
   }
 
-  // Toast Notification System
+  // Toast Notification System (within Shadow DOM)
   function showToast(message) {
-    let container = document.getElementById('bct-toast-container');
+    if (!shadowRoot) return;
+    
+    let container = shadowRoot.getElementById('bct-toast-container');
     if (!container) {
       container = document.createElement('div');
       container.id = 'bct-toast-container';
-      document.body.appendChild(container);
+      shadowRoot.appendChild(container);
     }
 
     const toast = document.createElement('div');
@@ -112,7 +115,7 @@
 
   function makeDraggable(element, dragTarget) {
     let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-    const handle = element.querySelector('.bct-panel-header') || element.querySelector('.bct-toggle-btn') || element;
+    const handle = element;
 
     handle.addEventListener('mousedown', dragMouseDown);
 
@@ -168,11 +171,34 @@
   }
 
   function createFloatingWidget() {
-    if (document.getElementById('bct-floating-widget')) return;
+    if (document.getElementById('bct-extension-wrapper')) return;
 
+    // Create container wrapper on host DOM
+    const wrapper = document.createElement('div');
+    wrapper.id = 'bct-extension-wrapper';
+    wrapper.style.position = 'fixed';
+    wrapper.style.bottom = '24px';
+    wrapper.style.right = '24px';
+    wrapper.style.zIndex = '2147483647'; // Max z-index to stay on top
+    wrapper.style.width = 'auto';
+    wrapper.style.height = 'auto';
+    document.body.appendChild(wrapper);
+
+    // Attach shadow root
+    const shadow = wrapper.attachShadow({ mode: 'open' });
+    shadowRoot = shadow;
+
+    // Inject stylesheet inside the Shadow DOM
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL('content.css');
+    shadow.appendChild(link);
+
+    // Create widget root inside Shadow DOM
     const widget = document.createElement('div');
     widget.id = 'bct-floating-widget';
     widget.className = 'bct-widget-collapsed';
+    shadow.appendChild(widget);
 
     const embedUrl = currentUrl;
     const htmlCode = `<a href="${embedUrl}" target="_blank" rel="noopener noreferrer"><img src="http://online.gov.vn/logoCCDV.png" alt="Đã Đăng Ký Bộ Công Thương" style="width: 150px; border: 0;" /></a>`;
@@ -285,10 +311,8 @@
       </div>
     `;
 
-    document.body.appendChild(widget);
-
-    // Enable drag capability
-    makeDraggable(widget.querySelector('.bct-panel-header'), widget);
+    // Enable drag capability on the host wrapper element
+    makeDraggable(widget.querySelector('.bct-panel-header'), wrapper);
 
     // Event listeners
     const toggleBtn = widget.querySelector('.bct-toggle-btn');
@@ -311,16 +335,16 @@
       widget.classList.add('bct-widget-expanded');
     });
 
-    // Collapse
+    // Collapse and reset wrapper position
     closeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       widget.classList.remove('bct-widget-expanded');
       widget.classList.add('bct-widget-collapsed');
-      // Reset position styles to bottom-right when collapsing to stay consistent
-      widget.style.top = 'auto';
-      widget.style.left = 'auto';
-      widget.style.bottom = '24px';
-      widget.style.right = '24px';
+      
+      wrapper.style.top = 'auto';
+      wrapper.style.left = 'auto';
+      wrapper.style.bottom = '24px';
+      wrapper.style.right = '24px';
     });
 
     // Tab switching
@@ -418,9 +442,10 @@
   }
 
   function updateWidget(companyName, platformName, status) {
-    const companyEl = document.getElementById('bct-company-name');
-    const platformEl = document.getElementById('bct-platform-name');
-    const statusEl = document.getElementById('bct-badge-status');
+    if (!shadowRoot) return;
+    const companyEl = shadowRoot.getElementById('bct-company-name');
+    const platformEl = shadowRoot.getElementById('bct-platform-name');
+    const statusEl = shadowRoot.getElementById('bct-badge-status');
 
     if (companyEl) companyEl.textContent = companyName;
     if (platformEl) platformEl.textContent = platformName;

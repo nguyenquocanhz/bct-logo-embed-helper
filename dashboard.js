@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const CACHE_KEY = 'bct_platforms_cache';
   const CACHE_TIME_KEY = 'bct_platforms_cache_time';
   const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+  const SILENT_SYNC_DURATION = 6 * 60 * 60 * 1000; // Silent sync after 6 hours
 
   // State Variables
   let allData = [];
@@ -115,20 +116,25 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPage();
   }
 
-  // Load data from cache or API
+  // Load data from cache or API (Stale-While-Revalidate pattern)
   async function loadData() {
     showLoading(true);
     const cachedData = localStorage.getItem(CACHE_KEY);
     const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
     const now = Date.now();
 
-    if (cachedData && cachedTime && (now - parseInt(cachedTime) < CACHE_DURATION)) {
+    if (cachedData && cachedTime) {
       try {
         allData = JSON.parse(cachedData);
         statCacheStatus.textContent = 'Trực tuyến (Bộ nhớ đệm)';
         statCacheStatus.className = 'stat-value text-green';
         processData(allData);
         showLoading(false);
+
+        // Silent background update if cache is older than 6 hours
+        if (now - parseInt(cachedTime) > SILENT_SYNC_DURATION) {
+          silentBackgroundUpdate();
+        }
         return;
       } catch (e) {
         console.warn('Failed to parse cached data, fetching from API:', e);
@@ -139,7 +145,31 @@ document.addEventListener('DOMContentLoaded', () => {
     await refreshData(false);
   }
 
-  // Fetch API and update cache
+  // Silent sync database in background
+  async function silentBackgroundUpdate() {
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) return;
+      const res = await response.json();
+      if (res && res.status && Array.isArray(res.data)) {
+        const newDataStr = JSON.stringify(res.data);
+        const oldDataStr = localStorage.getItem(CACHE_KEY);
+        
+        // Only update cache & re-render if data is actually changed
+        if (newDataStr !== oldDataStr) {
+          allData = res.data;
+          localStorage.setItem(CACHE_KEY, newDataStr);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          processData(allData);
+          showToast('Cơ sở dữ liệu tự động cập nhật bản mới nhất!');
+        }
+      }
+    } catch (e) {
+      console.warn('Silent background update failed:', e);
+    }
+  }
+
+  // Fetch API and update cache (Manual/Hard refresh)
   async function refreshData(isManual = false) {
     showLoading(true);
     statCacheStatus.textContent = 'Đang tải...';
@@ -231,34 +261,82 @@ document.addEventListener('DOMContentLoaded', () => {
     filterAndRender();
   }
 
-  // Filter algorithms
+  // Calculate search relevance score (Fuzzy search matching score)
+  function getSearchScore(item, query) {
+    if (query === '') return 1;
+
+    const name = removeAccents((item.name || '').toLowerCase());
+    const domain = removeAccents((item.domain || '').toLowerCase());
+    const company = removeAccents((item.companyName || '').toLowerCase());
+    const tax = removeAccents((item.companyTaxCode || '').toLowerCase());
+
+    let score = 0;
+
+    // 1. Exact Match Tax Code (Highest importance)
+    if (tax === query) {
+      score += 100;
+    } else if (tax.includes(query)) {
+      score += 40;
+    }
+
+    // 2. Match Domain
+    if (domain === query) {
+      score += 80;
+    } else if (domain.includes(query)) {
+      score += 30;
+      if (domain.startsWith(query)) score += 10;
+    }
+
+    // 3. Match Platform Name
+    if (name === query) {
+      score += 60;
+    } else if (name.includes(query)) {
+      score += 25;
+      if (name.startsWith(query)) score += 10;
+    }
+
+    // 4. Match Company Name
+    if (company === query) {
+      score += 50;
+    } else if (company.includes(query)) {
+      score += 20;
+      if (company.startsWith(query)) score += 5;
+    }
+
+    return score;
+  }
+
+  // Filter algorithms with weighted fuzzy sorting
   function filterAndRender() {
     const query = removeAccents(searchInput.value.toLowerCase().trim());
     const selectedCategory = filterCategory.value;
     const selectedTemplate = filterTemplate.value;
 
-    filteredData = allData.filter(item => {
-      // 1. Search Query filter (fuzzy match name, domain, companyName, companyTaxCode)
-      const name = removeAccents((item.name || '').toLowerCase());
-      const domain = removeAccents((item.domain || '').toLowerCase());
-      const company = removeAccents((item.companyName || '').toLowerCase());
-      const tax = removeAccents((item.companyTaxCode || '').toLowerCase());
-
-      const matchQuery = query === '' || 
-        name.includes(query) || 
-        domain.includes(query) || 
-        company.includes(query) || 
-        tax.includes(query);
-
-      // 2. Category filter
+    // Filter items first
+    let matchedItems = allData.filter(item => {
+      // 1. Category filter
       const matchCategory = selectedCategory === 'all' || item.categoryLabel === selectedCategory;
 
-      // 3. Template filter
+      // 2. Template filter
       const matchTemplate = selectedTemplate === 'all' || item.mauSo === selectedTemplate;
 
-      return matchQuery && matchCategory && matchTemplate;
+      if (!matchCategory || !matchTemplate) return false;
+
+      // 3. Search query filter
+      if (query === '') return true;
+      return getSearchScore(item, query) > 0;
     });
 
+    // Sort items by relevance score descending if searching
+    if (query !== '') {
+      matchedItems.sort((a, b) => {
+        const scoreA = getSearchScore(a, query);
+        const scoreB = getSearchScore(b, query);
+        return scoreB - scoreA;
+      });
+    }
+
+    filteredData = matchedItems;
     currentPage = 1;
     gridContainer.innerHTML = '';
     tableBody.innerHTML = '';
@@ -480,17 +558,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isIconOnly) {
       element.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
     } else {
-      const originalText = element.textContent;
       element.textContent = successText;
     }
 
     setTimeout(() => {
       element.classList.remove('copied');
-      if (isIconOnly) {
-        element.innerHTML = originalHtml;
-      } else {
-        element.innerHTML = originalHtml;
-      }
+      element.innerHTML = originalHtml;
     }, 1500);
   }
 
